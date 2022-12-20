@@ -27,13 +27,15 @@ public class MainActivity extends AppCompatActivity {
 
     // Winning Combinations
     private final List<int[]> combinationsList = new ArrayList<>();
-    private final List<String> doneBoxes = new ArrayList<>();//done boxws positive by usern  won't select the box
+    private final List<String> doneBoxes = new ArrayList<>();//done boxes positive by users so users won't select the box again
 
     // Player unique id
     private String playerUniqueId = "0";
 
     // Getting firebase database reference from URL
-    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tictactoe-68136-default-rtdb.firebaseio.com/");
+//    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReferenceFromUrl("https://tictactoe-17bd6-default-rtdb.firebaseio.com/");
+//    DatabaseReference databaseReference = database.getReference();
 
     // True when opponent will be found to play the game
     private boolean opponentFound = false;
@@ -50,13 +52,12 @@ public class MainActivity extends AppCompatActivity {
     //connection id in which player has join to play the game
     private String connectionId ="";
 
-    //Generating ValueeventListeners for firebase Database
+    //Generating ValueEventListeners for firebase Database
     //turnsEvenListener listen for player turns and wonEventListener listen if the player the match
     ValueEventListener turnsEventListener, wonEventListener;
 
-    //selected boxes by players empty fields will be replaced by player id
-    private
-     final String[]boxesSelectedBy = {"","","","","","","","",""};
+    //selected boxes by players. empty fields will be replaced by player id
+    private final String[]boxesSelectedBy = {"","","","","","","","",""};
 
 
     @Override
@@ -111,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
                 // Check if Opponent Found Or Not. If not then look for the opponent
-                if(opponentFound) {
+                if(!opponentFound) {
 
                     // Checking if there are others in the firebase realtime database
                     if(snapshot.hasChildren()) {
@@ -120,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
                         for(DataSnapshot connections : snapshot.getChildren()){
 
                             // Getting connection unique id
-                             String conId =connections.getKey();
+                             String conId = connections.getKey();
 
                              // 2 players are required to play the game.
                              // If getPlayersCount is 1 it means other player is waiting for a opponent to play the game.
@@ -144,7 +145,7 @@ public class MainActivity extends AppCompatActivity {
                                      for(DataSnapshot players : connections.getChildren()){
                                          String getPlayerUniqueId = players.getKey();
 
-                                      //Cheeck if player id match with user who created connection(this user) .if match then geet opponent detail
+                                      //Check if player id match with user who created connection(this user) .if match then geet opponent detail
                                       if(getPlayerUniqueId.equals(playerUniqueId)){
                                           playerFound = true;
 
@@ -157,8 +158,6 @@ public class MainActivity extends AppCompatActivity {
                                           player2TV.setText(getOpponentPlayerName);
 
                                           //assigning connection id
-                                          connectionId = conId;
-
                                           connectionId = conId;
                                           opponentFound = true;
 
@@ -179,9 +178,9 @@ public class MainActivity extends AppCompatActivity {
 
                                  }
                              }
-                             //in case user has not create the connectio because of other rooms are available to join
+                             //in case user has not create the connection/room because of other rooms are available to join
                              else{
-                                 //checking if the connection has 1 player ans need 1 more player to play the match then join the this coonection
+                                 //checking if the connection has 1 player ans need 1 more player to play the match then join the this connection
                                  if(getPlayersCount == 1){
 
                                      //add player to the coonection
@@ -200,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                                          //setting playername to the textview
                                          player2TV.setText(getOpponentName);
 
-                                         //assigning coonecting
+                                         //assigning connecting
                                          connectionId = conId;
                                          opponentFound = true;
 
@@ -222,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                              }
 
                         }
-                        //check if oppenent is not found and user is not waiting for the oppenent anymore then create a new coonection
+                        //check if opponent is not found and user is not waiting for the opponent anymore then create a new connection
                         if (!opponentFound && !status.equals("waiting")){
 
                             // Generating unique id for the connection
@@ -259,14 +258,14 @@ public class MainActivity extends AppCompatActivity {
         turnsEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                //getting  all turns iof the coonection
+                //getting all turns of the connection
                 for(DataSnapshot dataSnapshot : snapshot.getChildren()){
 
                     if(dataSnapshot.getChildrenCount() == 2){
-                        //getting box positionselected by the user
+                        //getting box position selected by the user
                         final int getBoxPosition = Integer.parseInt(dataSnapshot.child("box_position").getValue(String.class));
 
-                        //geeting player id who selected the box
+                        //getting player id who selected the box
                         final String getPlayerId = dataSnapshot.child("player_id").getValue(String.class);
 
 
@@ -335,11 +334,11 @@ public class MainActivity extends AppCompatActivity {
                      if(getWinPlayerId.equals(playerUniqueId)){
 
                          //show win dialog
-                         winDialog = new WinDialog(MainActivity.this,"You won the game");// s phai la meessage
+                         winDialog = new WinDialog(MainActivity.this,"You won the game!");// s phai la meessage
                      }
                      else{
                          //show win dialog
-                         winDialog = new WinDialog(MainActivity.this,"oppenent the game");// s phai la meessage
+                         winDialog = new WinDialog(MainActivity.this,"Oh,Opponent won!");// s phai la meessage
 
                      }
                      winDialog.setCancelable((false));
@@ -367,8 +366,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("1");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("1");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -383,8 +382,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("2");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("2");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -399,8 +398,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("3");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("3");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -415,8 +414,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("4");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("4");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -431,8 +430,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("5");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("5");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -447,8 +446,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("6");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("6");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -463,8 +462,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("7");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("7");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -479,8 +478,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("8");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("8");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -495,8 +494,8 @@ public class MainActivity extends AppCompatActivity {
                     ((ImageView)v).setImageResource(R.drawable.cross_icon);
 
                     //send selected box position and player unique id to Firebase Database
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("box_position").setValue("9");
-                    databaseReference.child("turn").child(connectionId).child(String.valueOf(doneBoxes.size() -1 )).child("player_id").setValue(playerUniqueId);
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("box_position").setValue("9");
+                    databaseReference.child("turns").child(connectionId).child(String.valueOf(doneBoxes.size() + 1 )).child("player_id").setValue(playerUniqueId);
 
                     //chNGE PLAYER TURN
                     playerTurn = opponentUniqueId;
@@ -517,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
     }
     private void selectBox(ImageView imageView, int selectedBoxPosition, String selectedByPlayer){
 
-        boxesSelectedBy[selectedBoxPosition -1] = selectedByPlayer;
+        boxesSelectedBy[selectedBoxPosition - 1] = selectedByPlayer;
 
         if(selectedByPlayer.equals(playerUniqueId)){
             imageView.setImageResource(R.drawable.cross_icon);
@@ -529,20 +528,19 @@ public class MainActivity extends AppCompatActivity {
         }
         applyPlayerTurn(playerTurn);
 
-        //checking wheather player has won the match
+        //checking whether player has won the match
         if(checkPlayerWin(selectedByPlayer)){
 
-            //sending won player unique id to firebase datasbase wo oppenent can be notified
+            //sending won player unique id to firebase database wo oppenent can be notified
             databaseReference.child("won").child(connectionId).child("player_id").setValue(selectedByPlayer);
         }
 
         //over the game if there is no box left to be selected
         if (doneBoxes.size() == 9){
-            final WinDialog winDialog = new WinDialog(MainActivity.this,"It is a Draw!");// nos phai la message
+            final WinDialog winDialog = new WinDialog(MainActivity.this,"It is a Draw!");// s no phai la message
              winDialog.setCancelable(false);
              winDialog.show();
         }
-
 
     }
     private boolean checkPlayerWin(String playerId){

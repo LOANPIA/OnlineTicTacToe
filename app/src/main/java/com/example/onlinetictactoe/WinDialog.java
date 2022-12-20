@@ -12,12 +12,12 @@ import androidx.annotation.NonNull;
 
 public class WinDialog extends Dialog {
 
-    private String message;
+    private final String message;
     private final MainActivity mainActivity;
-    public WinDialog(@NonNull Context context, String s) {
+    public WinDialog(@NonNull Context context, String message) {
         super(context);
         this.message = message;
-        this.mainActivity =((MainActivity) context);
+        this.mainActivity =((MainActivity)context);
 
     }
 
